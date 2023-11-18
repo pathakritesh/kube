@@ -1,0 +1,49 @@
+##
+swapoff -a
+modprobe br_netfilter
+echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
+echo 1 > /proc/sys/net/bridge/bridge-nf-call-ip6tables
+echo '1' > /proc/sys/net/ipv4/ip_forward
+sudo sysctl -p
+
+
+### Kubeadm
+## to check kubeadm available packages
+apt-cache madison kubeadm
+## to install specific version
+kubelet=1.24.0-00 kubeadm=1.24.0-00 kubectl=1.24.0-00
+
+## kubeadm install as per docx
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl gpg
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+
+## initialize cluster with kubeadm (only master one)
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+kubeadm init --pod-network-cidr=10.244.0.0/16
+
+
+#vagrant# error 1 soln: https://stackoverflow.com/questions/44125020/cant-install-kubernetes-on-vagrant
+modprobe br_netfilter
+
+echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
+echo 1 > /proc/sys/net/bridge/bridge-nf-call-ip6tables
+
+sudo sysctl -p
+
+#https://github.com/kubernetes/kubeadm/issues/1062## error 2: [ERROR FileContent--proc-sys-net-ipv4-ip_forward]:
+modprobe br_netfilter
+echo '1' > /proc/sys/net/ipv4/ip_forward
+
+## error 3
+swapoff -a
+
+### to remove existing config
+kubeadm reset
+
+kubeadm config images pull
+sudo kubeadm init --apiserver-advertise-address=100.0.0.1 --pod-network-cidr=10.244.0.0/16
