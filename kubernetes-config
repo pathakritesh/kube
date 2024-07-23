@@ -23,6 +23,11 @@ sudo apt-get update
 sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 
+## For Worker Node
+# Run cmd on master
+kubeadm token create --print-join-command
+# Copy output and run on worker node
+
 ## initialize cluster with kubeadm (only master one)
 kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 kubeadm init --pod-network-cidr=10.244.0.0/16
